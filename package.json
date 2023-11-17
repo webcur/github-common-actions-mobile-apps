@@ -1,0 +1,18 @@
+{
+  "name": "github-common-actions-mobile-apps",
+  "version": "1.0.0",
+  "description": "Utility Scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare:jks": "node ./scripts/prepare-jks.js",
+    "prepare:key-properties-file": "node ./scripts/prepare-key-properties-file.js",
+    "prepare:google-services": "node ./scripts/prepare-google-services.js"
+  },
+  "author": "The Full Stack Jonin",
+  "license": "MIT",
+  "dependencies": {
+    "clipboardy": "^4.0.0",
+    "copy-paste": "^1.5.3"
+  }
+}
