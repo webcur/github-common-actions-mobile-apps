@@ -2,3 +2,4 @@ keystore.jks
 google-services.json
 firebase-service-account.json
 /node_modules/
+key.properties

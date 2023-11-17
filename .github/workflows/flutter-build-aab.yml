@@ -95,9 +95,6 @@ jobs:
         name: Bump Version Codes
         run: "sed -i 's/version: ${{ steps.read-version.outputs.version-number }}/version: ${{ inputs.version-code }}/g' pubspec.yaml"
 
-      - name: Echo pubspec.yaml
-        run: cat pubspec.yaml
-
       - name: Prepare Google Services JSON
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
 
