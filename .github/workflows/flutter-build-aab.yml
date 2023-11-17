@@ -34,6 +34,22 @@ on:
         description: Obfuscate
         type: boolean
         default: true
+    secrets:
+      KEYSTORE_JKS:
+        description: Keystore JKS
+        required: true
+      KEY_PROPERTIES:
+        description: Key Properties
+        required: true
+      GOOGLE_SERVICES_JSON:
+        description: Google Services JSON
+        required: true
+      APP_ENV:
+        description: App Environment
+        required: false
+      SLACK_WEBHOOK_URL:
+        description: Slack Webhook URL
+        required: true
 
 jobs:
   build:
