@@ -1,0 +1,179 @@
+name: flutter-build-aab
+
+on:
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: App Flavor.
+        required: false
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      environment:
+        description: Environment
+        type: environment
+      obfuscate:
+        description: Obfuscate
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      flavor:
+        required: false
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      environment:
+        description: Environment
+        type: string
+      obfuscate:
+        description: Obfuscate
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: inputs.environment
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable'
+          flutter-version: '3.13.2'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Code Generators
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Install RPS
+        run: dart pub global activate rps
+
+      - name: Decode Signing Keys
+        run: echo "${{ secrets.KEYSTORE_JKS }}" | base64 --decode > android/app/keystore.jks
+
+      - name: Decode android/key.properties
+        run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 --decode > android/key.properties
+
+      - name: flutter-version-number
+        uses: NiklasLehnfeld/flutter-version-number-action@v1
+        id: read-version
+
+      - name: Prepare ENV File
+        run: echo "${{ secrets.APP_ENV }}" | base64 --decode > .env
+
+      - if: "${{ inputs.version-code != '' }}"
+        name: Bump Version Codes
+        run: "sed -i 's/version: ${{ steps.read-version.outputs.version-number }}/version: ${{ inputs.version-code }}/g' pubspec.yaml"
+
+      - name: Echo pubspec.yaml
+        run: cat pubspec.yaml
+
+      - name: Prepare Google Services JSON
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+
+      - if: "${{ inputs.flavor == '' }}"
+        name: Build AAB
+        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+
+      - if: "${{ inputs.flavor != '' }}"
+        name: Build AAB
+        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+
+      - name: Zip Merged Native Libs Symbols
+        run: |
+          cd build/app/intermediates/merged_native_libs/release/out/lib && zip -r symbols.zip *
+
+      - name: Zip Flutter Build Symbols
+        run: |
+          cd build/app/outputs/symbols && zip -r symbols.zip *
+
+      - if: "${{ inputs.flavor == '' }}"
+        name: Upload AAB Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-curator.aab
+          path: ./build/app/outputs/flutter-apk/app-release.aab
+
+      - if: "${{ inputs.flavor != '' }}"
+        name: Upload AAB Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-curator-${{ inputs.flavor }}.aab
+          path: ./build/app/outputs/flutter-apk/app-${{ inputs.flavor }}-release.aab
+
+      - name: Upload Merged Native Symbols Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: merged_native_libs_symbols.zip
+          path: ./build/app/intermediates/merged_native_libs/release/out/lib/symbols.zip
+
+      - name: Upload Flutter Build Symbols Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: flutter_build_symbols.zip
+          path: ./build/app/outputs/symbols/symbols.zip
+
+      - name: Upload BOM Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pubspec.lock
+          path: ./pubspec.lock
+
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}
+      #     release_name: "Release v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}"
+      #     draft: false
+      #     prerelease: false
+
+      # - name: Upload Release Asset - AAB
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./build/app/outputs/flutter-apk/app-${{ inputs.flavor }}-release.apk
+      #     asset_name: oxygen-v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}.apk
+      #     asset_content_type: application/vnd.android.package-archive
+
+      # - name: Upload Release Asset - BOM
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./pubspec.lock
+      #     asset_name: pubspec.lock
+      #     asset_content_type: text/plain
+
+      - name: The job has failed
+        if: ${{ failure() && inputs.flavor != '' }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'APK Build for `${{ github.event.repository.name }}` :android: with `${{ inputs.flavor }}` flavor failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: The job has failed
+        if: ${{ failure() && inputs.flavor == '' }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'APK Build for `${{ github.event.repository.name }}` :android: failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
