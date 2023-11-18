@@ -7,10 +7,6 @@ on:
         description: AAB Artifact Name.
         required: false
         type: string
-      version-code:
-        description: Version code. e.g. 1.0.3+7
-        required: false
-        type: string
       environment:
         description: Environment
         type: environment
@@ -23,10 +19,6 @@ on:
       aab-artifact-name:
         description: AAB Artifact Name.
         required: true
-        type: string
-      version-code:
-        description: Version code. e.g. 1.0.3+7
-        required: false
         type: string
       environment:
         description: Environment
@@ -69,7 +61,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          file: ${{ inputs.aab-artifact-name }}.aab
           groups: ${{ inputs.tester-groups }}
           releaseNotesFile: ./RELEASE_NOTES.txt
 
@@ -79,7 +71,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          file: ${{ inputs.aab-artifact-name }}.aab
           groups: ${{ inputs.tester-groups }}
 
       - if: ${{ failure() }}
