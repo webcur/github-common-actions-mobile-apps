@@ -101,6 +101,16 @@ jobs:
           asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
           asset_content_type: application/zip
 
+      - name: Upload Release Asset - Mapping.txt
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mapping/mapping.txt
+          asset_name: mapping.txt
+          asset_content_type: text/plain
+
       - name: Upload Release Asset - BOM
         uses: actions/upload-release-asset@v1
         env:

@@ -164,6 +164,12 @@ jobs:
           name: ${{ inputs.flutter-build-symbols-artifact-name }}
           path: ./build/app/outputs/symbols/symbols.zip
 
+      - name: Upload Mapping Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mapping
+          path: ./build/app/outputs/mapping/release/mapping.txt
+
       - name: Upload BOM Artifact
         uses: actions/upload-artifact@v3
         with:
