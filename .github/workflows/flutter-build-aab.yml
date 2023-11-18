@@ -170,37 +170,6 @@ jobs:
           name: pubspec.lock
           path: ./pubspec.lock
 
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}
-      #     release_name: "Release v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}"
-      #     draft: false
-      #     prerelease: false
-
-      # - name: Upload Release Asset - AAB
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./build/app/outputs/flutter-apk/app-${{ inputs.flavor }}-release.apk
-      #     asset_name: oxygen-v${{ inputs.version-code != '' && inputs.version-code || steps.read-version.outputs.version-number }}.apk
-      #     asset_content_type: application/vnd.android.package-archive
-
-      # - name: Upload Release Asset - BOM
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./pubspec.lock
-      #     asset_name: pubspec.lock
-      #     asset_content_type: text/plain
-
       - name: The job has failed
         if: ${{ failure() && inputs.flavor != '' }}
         uses: rtCamp/action-slack-notify@v2.2.0

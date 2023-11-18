@@ -35,15 +35,16 @@ jobs:
       - name: Download Flutter Debug Symbols
         uses: actions/download-artifact@v2
         with:
-          name: ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}
+          name: ${{ inputs.flutter-debug-symbols-artifact-name }}
 
       - name: Extract Flutter Debug Symbols
-        run: unzip -q ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}.zip
+        run: unzip -q ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
 
       - name: Upload Flutter Debug Symbols to Firebase
-        run: firebase crashlytics:symbols:upload --app=${{ secrets.FIREBASE_APP_ID }} ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}
+        run: firebase crashlytics:symbols:upload --app=${{ secrets.FIREBASE_APP_ID }} ${{ inputs.flutter-debug-symbols-artifact-name }}
 
-      - name: The job has failed
+      - if: ${{ failure() }}
+        name: The job has failed
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_MESSAGE: 'Flutter denug symbols push for `${{ github.event.repository.name }}` :android: failed :x:.'
