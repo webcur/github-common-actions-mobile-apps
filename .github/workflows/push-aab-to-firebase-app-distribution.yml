@@ -54,7 +54,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.aab-artifact-name }}.aab
+          name: ${{ inputs.aab-artifact-name }}
           path: .
 
       - name: 'Check Release Notes Existence'
@@ -70,7 +70,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ inputs.aab-artifact-name }}.aab
+          file: ${{ inputs.aab-artifact-name }}/app-release.aab
           groups: ${{ inputs.tester-groups }}
           releaseNotesFile: ./RELEASE_NOTES.txt
 
@@ -80,7 +80,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ inputs.aab-artifact-name }}.aab
+          file: ${{ inputs.aab-artifact-name }}/app-release.aab
           groups: ${{ inputs.tester-groups }}
 
       - if: "${{ steps.release_notes_exists.outputs.files_exists == 'true' }}"

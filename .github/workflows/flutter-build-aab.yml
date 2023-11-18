@@ -142,32 +142,32 @@ jobs:
         name: Upload Normal AAB Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.aab-artifact-name }}.aab
+          name: ${{ inputs.aab-artifact-name }}
           path: ./build/app/outputs/bundle/release/app-release.aab
 
       - if: "${{ inputs.flavor != '' }}"
         name: Upload Flavored AAB Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.aab-artifact-name }}-${{ inputs.flavor }}.aab
+          name: ${{ inputs.aab-artifact-name }}-${{ inputs.flavor }}
           path: ./build/app/outputs/flutter-apk/app-${{ inputs.flavor }}-release.aab
 
       - name: Upload Merged Native Symbols Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.merged-native-libs-symbols-artifact-name }}.zip
+          name: ${{ inputs.merged-native-libs-symbols-artifact-name }}
           path: ./build/app/intermediates/merged_native_libs/release/out/lib/symbols.zip
 
       - name: Upload Flutter Build Symbols Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.flutter-build-symbols-artifact-name }}.zip
+          name: ${{ inputs.flutter-build-symbols-artifact-name }}
           path: ./build/app/outputs/symbols/symbols.zip
 
       - name: Upload BOM Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: pubspec.lock
+          name: bom
           path: ./pubspec.lock
 
       - name: The job has failed
