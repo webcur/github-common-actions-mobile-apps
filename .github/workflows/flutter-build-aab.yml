@@ -54,7 +54,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: inputs.environment
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v1
 
@@ -119,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: web-curator.aab
-          path: ./build/app/outputs/flutter-apk/app-release.aab
+          path: ./build/app/outputs/bundle/release/app-release.aab
 
       - if: "${{ inputs.flavor != '' }}"
         name: Upload AAB Artifact

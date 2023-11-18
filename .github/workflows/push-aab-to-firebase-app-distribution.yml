@@ -1,0 +1,80 @@
+name: push-aab-to-firebase-app-distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      aab-artifact-name:
+        description: AAB Artifact Name.
+        required: false
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      environment:
+        description: Environment
+        type: environment
+      tester-groups:
+        description: Comma separated firebase tester groups.
+        type: string
+        required: true
+  workflow_call:
+    inputs:
+      aab-artifact-name:
+        description: AAB Artifact Name.
+        required: false
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      environment:
+        description: Environment
+        type: string
+      tester-groups:
+        description: Comma separated firebase tester groups.
+        type: string
+        required: true
+    secrets:
+      FIREBASE_APP_ID:
+        description: Firebase App ID
+        required: true
+      FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT:
+        description: Firebase Service Account Key Content
+        required: true
+
+jobs:
+  push-to-firebase-app-distribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ github.event.inputs.aab-artifact-name }}
+
+      - name: 'Check Release Notes Existence'
+        id: release_notes_exists
+        uses: andstor/file-existence-action@v2
+        with:
+          files: './RELEASE_NOTES.txt'
+          fail: false
+
+      - if: "${{ steps.release_notes_exists.outputs.files_exists == 'true' }}"
+        name: Push AAB to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.5.0
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
+          file: ${{ github.event.inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          groups: ${{ inputs.tester-groups }}
+          releaseNotesFile: ./RELEASE_NOTES.txt
+
+      - if: "${{ steps.release_notes_exists.outputs.files_exists == 'false' }}"
+        name: Push AAB to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.5.0
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
+          file: ${{ github.event.inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          groups: ${{ inputs.tester-groups }}
