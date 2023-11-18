@@ -123,11 +123,11 @@ jobs:
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
 
       - if: "${{ inputs.flavor == '' }}"
-        name: Build AAB
+        name: Build Normal AAB
         run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
 
       - if: "${{ inputs.flavor != '' }}"
-        name: Build AAB
+        name: Build Flavored AAB
         run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
 
       - name: Zip Merged Native Libs Symbols
@@ -139,14 +139,14 @@ jobs:
           cd build/app/outputs/symbols && zip -r symbols.zip *
 
       - if: "${{ inputs.flavor == '' }}"
-        name: Upload AAB Artifact
+        name: Upload Normal AAB Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.aab-artifact-name }}.aab
           path: ./build/app/outputs/bundle/release/app-release.aab
 
       - if: "${{ inputs.flavor != '' }}"
-        name: Upload AAB Artifact
+        name: Upload Flavored AAB Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.aab-artifact-name }}-${{ inputs.flavor }}.aab
