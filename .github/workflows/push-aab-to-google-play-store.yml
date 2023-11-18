@@ -183,7 +183,7 @@ jobs:
           track: ${{ inputs.track }}
           status: ${{ inputs.status }}
           inAppUpdatePriority: 2
-          userFraction: '1.0'
+          userFraction: 0.9
           whatsNewDirectory: whatsnew
           mappingFile: mapping.txt
           debugSymbols: symbols
