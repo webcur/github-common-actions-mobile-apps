@@ -36,6 +36,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ${{ inputs.flutter-debug-symbols-artifact-name }}
+          path: .
 
       - name: Extract Flutter Debug Symbols
         run: unzip -q ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
