@@ -38,11 +38,14 @@ jobs:
           name: ${{ inputs.flutter-debug-symbols-artifact-name }}
           path: .
 
+      - name: LS
+        run: ls -R
+
       - name: Extract Flutter Debug Symbols
-        run: unzip -q ${{ inputs.flutter-debug-symbols-artifact-name }}/symbols.zip -d symbols
+        run: unzip -q ./${{ inputs.flutter-debug-symbols-artifact-name }}/symbols.zip -d symbols
 
       - name: Upload Flutter Debug Symbols to Firebase
-        run: firebase crashlytics:symbols:upload --app=${{ secrets.FIREBASE_APP_ID }} ${{ inputs.flutter-debug-symbols-artifact-name }}/symbols
+        run: firebase crashlytics:symbols:upload --app=${{ secrets.FIREBASE_APP_ID }} ./${{ inputs.flutter-debug-symbols-artifact-name }}/symbols
 
       - if: ${{ failure() }}
         name: The job has failed

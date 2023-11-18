@@ -33,7 +33,7 @@ on:
         description: AAB Artifact Name.
         required: true
         type: string
-      merged-native-libs-symbols-artifact-name:
+      merged-native-debug-symbols-artifact-name:
         description: AAB Artifact Name.
         required: true
         type: string
