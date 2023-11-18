@@ -54,7 +54,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.aab-artifact-name }}
+          name: ${{ inputs.aab-artifact-name }}.aab
 
       - name: 'Check Release Notes Existence'
         id: release_notes_exists
