@@ -1,0 +1,35 @@
+name: push-aab-to-google-play-store
+
+on:
+  workflow_dispatch:
+    inputs:
+      aab-file-name:
+        description: AAB File Name.
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      aab-file-name:
+        description: AAB File Name.
+        required: true
+        type: string
+
+jobs:
+  download-latest-release-and-push-to-google-play:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest release
+        uses: pozetroninc/github-action-get-latest-release@v0.7.0
+        id: get-latest-release
+        with:
+          repository: ${{ github.repository }}
+
+      - name: release-downloader
+        uses: robinraju/release-downloader@v1.8
+        with:
+          latest: true
+          fileName: '${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.apk'
+          out-file-path: release
+
+      - name: LS
+        run: ls -R
