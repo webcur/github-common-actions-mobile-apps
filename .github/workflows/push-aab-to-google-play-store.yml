@@ -42,8 +42,8 @@ jobs:
         name: release-downloader
         uses: robinraju/release-downloader@v1.8
         with:
-          latest: true
-          fileName: '${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.apk'
+          tag: ${{ steps.get-latest-release.outputs.release }}
+          fileName: '${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab'
           out-file-path: release
 
       - name: LS
