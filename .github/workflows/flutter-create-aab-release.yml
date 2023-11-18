@@ -59,9 +59,11 @@ jobs:
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
+        with:
+          path: .
 
       - name: LS
-        run: ls -la
+        run: ls -R
 
       - name: Create Release
         id: create_release
@@ -80,7 +82,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.aab-artifact-name }}.aab/${{ inputs.aab-artifact-name }}.aab
+          asset_path: ${{ inputs.aab-artifact-name }}.aab
           asset_name: ${{ inputs.aab-artifact-name }}${{ format('-{0}{1}', inputs.flavor, inputs.flavor != '' && '-' || '' ) }}v${{ inputs.version-code }}.aab
           asset_content_type: application/vnd.android.package-archive
 
@@ -90,7 +92,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ inputs.merged-native-debug-symbols-artifact-name }}.zip
+          asset_path: ${{ inputs.merged-native-debug-symbols-artifact-name }}.zip
           asset_name: ${{ inputs.merged-native-debug-symbols-artifact-name }}
           asset_content_type: application/zip
 
@@ -100,7 +102,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ inputs.flutter-debug-symbols-artifact-name }}.zip
+          asset_path: ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
           asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}
           asset_content_type: application/zip
 
