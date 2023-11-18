@@ -93,7 +93,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ inputs.merged-native-debug-symbols-artifact-name }}/symbols.zip
-          asset_name: ${{ inputs.merged-native-debug-symbols-artifact-name }}
+          asset_name: ${{ inputs.merged-native-debug-symbols-artifact-name }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - Flutter Debug Symbols
@@ -103,7 +103,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ inputs.flutter-debug-symbols-artifact-name }}/symbols.zip
-          asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}
+          asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
           asset_content_type: application/zip
 
       - name: Upload Release Asset - BOM
