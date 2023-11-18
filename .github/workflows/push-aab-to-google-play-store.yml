@@ -68,6 +68,9 @@ on:
       GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT:
         description: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT
         required: true
+      SLACK_WEBHOOK_URL:
+        description: SLACK_WEBHOOK_URL
+        required: true
 
 jobs:
   download-latest-release-and-push-to-google-play:
@@ -184,3 +187,10 @@ jobs:
           whatsNewDirectory: whatsnew
           mappingFile: mapping.txt
           debugSymbols: symbols
+
+      - if: ${{ failure() }}
+        name: The job has failed
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'Push AAB ro Google Play for `${{ github.event.repository.name }}` failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
