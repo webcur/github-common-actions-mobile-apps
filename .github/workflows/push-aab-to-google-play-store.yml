@@ -19,6 +19,10 @@ on:
         description: Track.
         required: true
         type: string
+      status:
+        description: Status.
+        required: false
+        type: string
       merged-native-libs-symbols-artifact-name:
         description: Merged Native Libs Symbols Artifact Name
         required: false
@@ -43,6 +47,10 @@ on:
         type: string
       track:
         description: Track.
+        required: true
+        type: string
+      status:
+        description: Status.
         required: true
         type: string
       merged-native-libs-symbols-artifact-name:
@@ -169,8 +177,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT }}
           packageName: ${{ inputs.app-id  }}
           releaseFiles: app-release.aab
-          track: production
-          status: inProgress
+          track: ${{ inputs.track }}
+          status: ${{ inputs.status }}
           inAppUpdatePriority: 2
           userFraction: 1
           whatsNewDirectory: whatsnew
