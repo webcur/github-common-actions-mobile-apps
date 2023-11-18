@@ -17,7 +17,7 @@ on:
       tester-groups:
         description: Comma separated firebase tester groups.
         type: string
-        required: true
+        required: false
   workflow_call:
     inputs:
       aab-artifact-name:
@@ -34,7 +34,7 @@ on:
       tester-groups:
         description: Comma separated firebase tester groups.
         type: string
-        required: true
+        required: false
     secrets:
       FIREBASE_APP_ID:
         description: Firebase App ID

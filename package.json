@@ -8,12 +8,12 @@
     "prepare:jks": "node ./scripts/prepare-jks.js",
     "prepare:key-properties-file": "node ./scripts/prepare-key-properties-file.js",
     "prepare:google-services": "node ./scripts/prepare-google-services.js",
-    "prepare:env": "node ./scripts/prepare-env.js"
+    "prepare:env": "node ./scripts/prepare-env.js",
+    "prepare:app-distribution-service-account": "node ./scripts/prepare-app-distribution-service-account.js"
   },
   "author": "The Full Stack Jonin",
   "license": "MIT",
   "dependencies": {
-    "clipboardy": "^4.0.0",
     "copy-paste": "^1.5.3"
   }
 }
