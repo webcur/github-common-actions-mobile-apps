@@ -7,6 +7,10 @@ on:
         description: AAB Artifact Name.
         required: false
         type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
       environment:
         description: Environment
         type: environment
@@ -19,6 +23,10 @@ on:
       aab-artifact-name:
         description: AAB Artifact Name.
         required: true
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
         type: string
       environment:
         description: Environment
@@ -73,6 +81,27 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
           file: ${{ inputs.aab-artifact-name }}.aab
           groups: ${{ inputs.tester-groups }}
+
+      - if: "${{ steps.release_notes_exists.outputs.files_exists == 'true' }}"
+        name: Read Release Notes
+        id: read-file
+        uses: juliangruber/read-file-action@v1.1.6
+        with:
+          path: ./RELEASE_NOTES.txt
+
+      - if: "${{ steps.release_notes_exists.outputs.files_exists == 'true' }}"
+        name: Slack Notify
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: "AAB Build for `${{ inputs.aab-artifact-name }}` :android: for `${{ inputs.environment }}` :white_check_mark: successful.\nVersion: ${{ inputs.version-code }}\nRelease Notes: ```${{ steps.read-file.outputs.content }}```"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - if: "${{ steps.release_notes_exists.outputs.files_exists == 'false' }}"
+        name: Slack Notify
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: "AAB Build for `${{ inputs.aab-artifact-name }}` :android: for `${{ inputs.environment }}` :white_check_mark: successful.\nVersion: ${{ inputs.version-code }}"
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - if: ${{ failure() }}
         name: The job has failed
