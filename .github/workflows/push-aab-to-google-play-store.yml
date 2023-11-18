@@ -5,26 +5,36 @@ on:
     inputs:
       aab-file-name:
         description: AAB File Name.
-        required: true
+        required: false
+        type: string
+      aab-artifact-name:
+        description: AAB Artifact Name.
+        required: false
         type: string
   workflow_call:
     inputs:
       aab-file-name:
         description: AAB File Name.
-        required: true
+        required: false
+        type: string
+      aab-artifact-name:
+        description: AAB Artifact Name.
+        required: false
         type: string
 
 jobs:
   download-latest-release-and-push-to-google-play:
     runs-on: ubuntu-latest
     steps:
-      - name: Get latest release
+      - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
+        name: Get latest release
         uses: pozetroninc/github-action-get-latest-release@v0.7.0
         id: get-latest-release
         with:
           repository: ${{ github.repository }}
 
-      - name: release-downloader
+      - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
+        name: release-downloader
         uses: robinraju/release-downloader@v1.8
         with:
           latest: true
