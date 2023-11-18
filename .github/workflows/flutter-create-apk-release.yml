@@ -1,0 +1,122 @@
+name: flutter-create-apk-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      flutter-debug-symbols-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      merged-native-debug-symbols-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      flavor:
+        description: Flavor. e.g. dev, prod
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      apk-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      flutter-debug-symbols-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      merged-native-debug-symbols-artifact-name:
+        description: APK Artifact Name.
+        required: true
+        type: string
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      flavor:
+        description: Flavor. e.g. dev, prod
+        required: false
+        type: string
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: Slack Webhook URL
+        required: true
+      GITHUB_ENV_TOKEN:
+        description: GITHUB_TOKEN
+        required: true
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          tag_name: v${{ inputs.version-code }}
+          release_name: 'Release v${{ inputs.version-code }}'
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset - APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ inputs.apk-artifact-name }}/app-release.apk
+          asset_name: ${{ inputs.apk-artifact-name }}${{ format('-{0}{1}', inputs.flavor, inputs.flavor != '' && '-' || '' ) }}v${{ inputs.version-code }}.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Release Asset - Merged Native Debug Symbols
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ inputs.merged-native-debug-symbols-artifact-name }}/symbols.zip
+          asset_name: ${{ inputs.merged-native-debug-symbols-artifact-name }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset - Flutter Debug Symbols
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ inputs.flutter-debug-symbols-artifact-name }}/symbols.zip
+          asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset - Mapping.txt
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mapping/mapping.txt
+          asset_name: mapping.txt
+          asset_content_type: text/plain
+
+      - name: Upload Release Asset - BOM
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bom/pubspec.lock
+          asset_name: pubspec.lock
+          asset_content_type: text/plain
