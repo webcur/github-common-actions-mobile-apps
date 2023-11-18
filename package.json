@@ -9,7 +9,8 @@
     "prepare:key-properties-file": "node ./scripts/prepare-key-properties-file.js",
     "prepare:google-services": "node ./scripts/prepare-google-services.js",
     "prepare:env": "node ./scripts/prepare-env.js",
-    "prepare:app-distribution-service-account": "node ./scripts/prepare-app-distribution-service-account.js"
+    "prepare:app-distribution-service-account": "node ./scripts/prepare-app-distribution-service-account.js",
+    "prepare:google-play-service-account": "node ./scripts/prepare-google-play-service-account.js"
   },
   "author": "The Full Stack Jonin",
   "license": "MIT",

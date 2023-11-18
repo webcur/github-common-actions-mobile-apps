@@ -11,6 +11,10 @@ on:
         description: AAB Artifact Name.
         required: false
         type: string
+      app-id:
+        description: App ID.
+        required: true
+        type: string
   workflow_call:
     inputs:
       aab-file-name:
@@ -21,9 +25,16 @@ on:
         description: AAB Artifact Name.
         required: false
         type: string
+      app-id:
+        description: App ID.
+        required: true
+        type: string
     secrets:
       GITHUB_ENV_TOKEN:
         description: GITHUB_ENV_TOKEN
+        required: true
+      GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT:
+        description: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT
         required: true
 
 jobs:
@@ -76,3 +87,20 @@ jobs:
         with:
           files: './RELEASE_NOTES.txt'
           fail: false
+
+      - name: Create what's new directory and copy Release Notes
+        run: mkdir whatsnew && cp ./RELEASE_NOTES.txt ./whatsnew/whatsnew-en-US
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_CONTENT }}
+          packageName: ${{ inputs.app-id  }}
+          releaseFiles: app-release.aab
+          track: production
+          status: inProgress
+          inAppUpdatePriority: 2
+          userFraction: 1
+          whatsNewDirectory: whatsnew
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
+          debugSymbols: app/intermediates/merged_native_libs/release/out/lib
