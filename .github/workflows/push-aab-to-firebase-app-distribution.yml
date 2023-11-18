@@ -69,7 +69,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ github.event.inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          file: ${{ inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
           groups: ${{ inputs.tester-groups }}
           releaseNotesFile: ./RELEASE_NOTES.txt
 
@@ -79,7 +79,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
-          file: ${{ github.event.inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
+          file: ${{ inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
           groups: ${{ inputs.tester-groups }}
 
       - if: ${{ failure() }}
