@@ -30,6 +30,13 @@ jobs:
   download-latest-release-and-push-to-google-play:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate Inputs
+        run: |
+          if [ -z "${{ inputs.aab-file-name }}" ] && [ -z "${{ inputs.aab-artifact-name }}" ]; then
+            echo "Either aab-file-name or aab-artifact-name is required"
+            exit 1
+          fi
+
       - uses: actions/checkout@v1
 
       - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
@@ -48,13 +55,24 @@ jobs:
           fileName: '${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab'
           out-file-path: release
 
-      - name: LS
-        run: ls -R
+      - if: ${{ inputs.aab-artifact-name != '' && inputs.aab-file-name == '' }}
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.aab-artifact-name }}
 
       - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
         name: Normalize AAB File Name
         run: |
-          mv ./release/${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab ./${{ inputs.aab-file-name }}.aab
+          mv ./release/${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab ./app-release.aab
 
-      - name: LS
-        run: ls -R
+      - if: ${{ inputs.aab-artifact-name != '' && inputs.aab-file-name == '' }}
+        name: Normalize AAB File Name
+        run: |
+          mv ./${{ inputs.aab-artifact-name }}/app-release.aab ./app-release.aab
+
+      - name: 'Check Release Notes Existence'
+        id: release_notes_exists
+        uses: andstor/file-existence-action@v2
+        with:
+          files: './RELEASE_NOTES.txt'
+          fail: false
