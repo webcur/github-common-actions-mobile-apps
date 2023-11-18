@@ -118,7 +118,7 @@ jobs:
         uses: robinraju/release-downloader@v1.8
         with:
           tag: ${{ steps.get-latest-release.outputs.release }}
-          fileName: ${{ inputs.merged-native-libs-symbols-file-name }}
+          fileName: ${{ inputs.merged-native-libs-symbols-file-name }}.zip
           out-file-path: release
 
       - if: ${{ inputs.aab-artifact-name != '' && inputs.aab-file-name == '' }}
