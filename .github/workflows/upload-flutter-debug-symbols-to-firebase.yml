@@ -1,0 +1,50 @@
+name: upload-flutter-debug-symbols-to-firebase
+
+on:
+  workflow_dispatch:
+    inputs:
+      flutter-debug-symbols-artifact-name:
+        description: AAB Artifact Name.
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      flutter-debug-symbols-artifact-name:
+        description: AAB Artifact Name.
+        required: true
+        type: string
+    secrets:
+      FIREBASE_APP_ID:
+        description: Firebase App ID
+        required: true
+      FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT:
+        description: Firebase Service Account Key Content
+        required: true
+      SLACK_WEBHOOK_URL:
+        description: Slack Webhook URL
+        required: true
+
+jobs:
+  upload-debug-symbols:
+    name: Upload Flutter Debug Symbols to Firebase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Firebase Tools
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Download Flutter Debug Symbols
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}
+
+      - name: Extract Flutter Debug Symbols
+        run: unzip -q ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}.zip
+
+      - name: Upload Flutter Debug Symbols to Firebase
+        run: firebase crashlytics:symbols:upload --app=${{ secrets.FIREBASE_APP_ID }} ${{ github.event.inputs.flutter-debug-symbols-artifact-name }}
+
+      - name: The job has failed
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'Flutter denug symbols push for `${{ github.event.repository.name }}` :android: failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
