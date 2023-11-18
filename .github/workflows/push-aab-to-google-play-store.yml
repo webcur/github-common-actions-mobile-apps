@@ -30,6 +30,8 @@ jobs:
   download-latest-release-and-push-to-google-play:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
+
       - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
         name: Get latest release
         uses: pozetroninc/github-action-get-latest-release@v0.7.0
@@ -45,6 +47,14 @@ jobs:
           tag: ${{ steps.get-latest-release.outputs.release }}
           fileName: '${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab'
           out-file-path: release
+
+      - name: LS
+        run: ls -R
+
+      - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
+        name: Normalize AAB File Name
+        run: |
+          mv ./release/${{ inputs.aab-file-name }}-${{ steps.get-latest-release.outputs.release }}.aab ./${{ inputs.aab-file-name }}.aab
 
       - name: LS
         run: ls -R
