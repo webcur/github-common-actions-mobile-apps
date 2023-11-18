@@ -56,9 +56,6 @@ jobs:
         with:
           name: ${{ inputs.aab-artifact-name }}
 
-      - name: LS
-        run: ls -R
-
       - name: 'Check Release Notes Existence'
         id: release_notes_exists
         uses: andstor/file-existence-action@v2

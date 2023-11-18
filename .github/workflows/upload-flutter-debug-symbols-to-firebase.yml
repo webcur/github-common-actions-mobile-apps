@@ -37,9 +37,6 @@ jobs:
         with:
           name: ${{ inputs.flutter-debug-symbols-artifact-name }}
 
-      - name: LS
-        run: ls -R
-
       - name: Extract Flutter Debug Symbols
         run: unzip -q ./symbols.zip -d symbols
 
