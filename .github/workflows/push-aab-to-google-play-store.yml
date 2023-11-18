@@ -21,6 +21,10 @@ on:
         description: AAB Artifact Name.
         required: false
         type: string
+    secrets:
+      GITHUB_ENV_TOKEN:
+        description: GITHUB_ENV_TOKEN
+        required: true
 
 jobs:
   download-latest-release-and-push-to-google-play:
@@ -32,6 +36,7 @@ jobs:
         id: get-latest-release
         with:
           repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_ENV_TOKEN }}
 
       - if: ${{ inputs.aab-artifact-name == '' && inputs.aab-file-name != '' }}
         name: release-downloader
