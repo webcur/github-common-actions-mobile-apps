@@ -42,6 +42,9 @@ on:
       FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT:
         description: Firebase Service Account Key Content
         required: true
+      SLACK_WEBHOOK_URL:
+        description: Slack Webhook URL
+        required: true
 
 jobs:
   push-to-firebase-app-distribution:
