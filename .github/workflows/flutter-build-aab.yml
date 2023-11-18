@@ -18,6 +18,18 @@ on:
         description: Obfuscate
         type: boolean
         default: true
+      aab-artifact-name:
+        description: AAB Artifact Name
+        required: true
+        type: string
+      merged-native-libs-symbols-artifact-name:
+        description: Merged Native Libs Symbols Artifact Name
+        required: true
+        type: string
+      flutter-build-symbols-artifact-name:
+        description: Flutter Build Symbols Artifact Name
+        required: true
+        type: string
   workflow_call:
     inputs:
       flavor:
@@ -34,6 +46,18 @@ on:
         description: Obfuscate
         type: boolean
         default: true
+      aab-artifact-name:
+        description: AAB Artifact Name
+        required: true
+        type: string
+      merged-native-libs-symbols-artifact-name:
+        description: Merged Native Libs Symbols Artifact Name
+        required: true
+        type: string
+      flutter-build-symbols-artifact-name:
+        description: Flutter Build Symbols Artifact Name
+        required: true
+        type: string
     secrets:
       KEYSTORE_JKS:
         description: Keystore JKS
@@ -118,26 +142,26 @@ jobs:
         name: Upload AAB Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: web-curator.aab
+          name: ${{ inputs.aab-artifact-name }}.aab
           path: ./build/app/outputs/bundle/release/app-release.aab
 
       - if: "${{ inputs.flavor != '' }}"
         name: Upload AAB Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: web-curator-${{ inputs.flavor }}.aab
+          name: ${{ inputs.aab-artifact-name }}-${{ inputs.flavor }}.aab
           path: ./build/app/outputs/flutter-apk/app-${{ inputs.flavor }}-release.aab
 
       - name: Upload Merged Native Symbols Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: merged_native_libs_symbols.zip
+          name: ${{ inputs.merged-native-libs-symbols-artifact-name }}.zip
           path: ./build/app/intermediates/merged_native_libs/release/out/lib/symbols.zip
 
       - name: Upload Flutter Build Symbols Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: flutter_build_symbols.zip
+          name: ${{ inputs.flutter-build-symbols-artifact-name }}.zip
           path: ./build/app/outputs/symbols/symbols.zip
 
       - name: Upload BOM Artifact
@@ -181,12 +205,12 @@ jobs:
         if: ${{ failure() && inputs.flavor != '' }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_MESSAGE: 'APK Build for `${{ github.event.repository.name }}` :android: with `${{ inputs.flavor }}` flavor failed :x:.'
+          SLACK_MESSAGE: 'AAB Build for `${{ github.event.repository.name }}` :android: with `${{ inputs.flavor }}` flavor failed :x:.'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: The job has failed
         if: ${{ failure() && inputs.flavor == '' }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_MESSAGE: 'APK Build for `${{ github.event.repository.name }}` :android: failed :x:.'
+          SLACK_MESSAGE: 'AAB Build for `${{ github.event.repository.name }}` :android: failed :x:.'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

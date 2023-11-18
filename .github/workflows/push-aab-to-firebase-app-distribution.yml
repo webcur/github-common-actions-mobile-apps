@@ -78,3 +78,9 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_CONTENT }}
           file: ${{ github.event.inputs.aab-artifact-name }}-v${{ inputs.version-code }}.aab
           groups: ${{ inputs.tester-groups }}
+
+      - name: The job has failed
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'AAB Build for `${{ github.event.repository.name }}` :android: failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
