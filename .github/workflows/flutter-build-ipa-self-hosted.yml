@@ -1,4 +1,4 @@
-name: flutter-build-ios-self-hosted
+name: flutter-build-ipa-self-hosted
 
 on:
   workflow_dispatch:
@@ -15,6 +15,10 @@ on:
         description: Obfuscate
         type: boolean
         default: true
+      environment:
+        description: Environment
+        type: string
+        default: staging
   workflow_call:
     inputs:
       version-code:
@@ -29,10 +33,19 @@ on:
         description: Obfuscate
         type: boolean
         default: true
+      environment:
+        description: Environment
+        type: string
+        default: staging
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: Slack Webhook URL
+        required: false
 
 jobs:
   build-ios:
     runs-on: macOS
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v2
 
