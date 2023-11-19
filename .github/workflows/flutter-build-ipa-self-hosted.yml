@@ -1,0 +1,57 @@
+name: flutter-build-ios-self-hosted
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      flavor:
+        description: Flavor. e.g. dev, prod
+        required: false
+        type: string
+      obfuscate:
+        description: Obfuscate
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      version-code:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      flavor:
+        description: Flavor. e.g. dev, prod
+        required: false
+        type: string
+      obfuscate:
+        description: Obfuscate
+        type: boolean
+        default: true
+
+jobs:
+  build-ios:
+    runs-on: macOS
+    steps:
+      - uses: actions/checkout@v2
+
+      # - name: Setup Flutter
+      #   uses: subosito/flutter-action@v1
+      #   with:
+      #     channel: 'stable'
+      #     flutter-version: '3.13.2'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Code Generators
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - if: "${{ inputs.flavor == '' }}"
+        name: Build Normal IPA
+        run: flutter build ipa --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+
+      - if: "${{ inputs.flavor != '' }}"
+        name: Build Flavored IPA
+        run: flutter build ipa --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
