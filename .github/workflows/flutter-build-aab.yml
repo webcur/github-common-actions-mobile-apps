@@ -67,13 +67,16 @@ on:
         required: true
       GOOGLE_SERVICES_JSON:
         description: Google Services JSON
-        required: true
+        required: false
       APP_ENV:
         description: App Environment
         required: false
       SLACK_WEBHOOK_URL:
         description: Slack Webhook URL
         required: true
+      DART_DEFINE_FILE:
+        description: Dart Define File
+        required: false
 
 jobs:
   build:
@@ -108,6 +111,9 @@ jobs:
       - name: Decode android/key.properties
         run: echo "${{ secrets.KEY_PROPERTIES }}" | base64 --decode > android/key.properties
 
+      - name: Prepare Dart Define File
+        run: echo "${{ secrets.DART_DEFINE_FILE }}" | base64 --decode > dart-define.json
+
       - name: flutter-version-number
         uses: NiklasLehnfeld/flutter-version-number-action@v1
         id: read-version
@@ -124,11 +130,11 @@ jobs:
 
       - if: "${{ inputs.flavor == '' }}"
         name: Build Normal AAB
-        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
 
       - if: "${{ inputs.flavor != '' }}"
         name: Build Flavored AAB
-        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
 
       - name: Zip Merged Native Libs Symbols
         run: |
