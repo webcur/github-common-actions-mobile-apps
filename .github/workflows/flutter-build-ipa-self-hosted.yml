@@ -19,6 +19,21 @@ on:
         description: Environment
         type: string
         default: staging
+      app-name:
+        description: App Name
+        type: string
+        default: App Name
+        required: true
+      ipa-artifact-name:
+        description: IPA Artifact Name
+        type: string
+        default: IPA Artifact Name
+        required: true
+      runner-archive-artifact-name:
+        description: Runner Archive Artifact Name
+        type: string
+        default: Runner
+        required: true
   workflow_call:
     inputs:
       version-code:
@@ -37,9 +52,42 @@ on:
         description: Environment
         type: string
         default: staging
+      app-name:
+        description: App Name
+        type: string
+        default: App Name
+        required: true
+      ipa-artifact-name:
+        description: IPA Artifact Name
+        type: string
+        default: IPA Artifact Name
+        required: true
+      runner-archive-artifact-name:
+        description: Runner Archive Artifact Name
+        type: string
+        default: Runner
+        required: true
     secrets:
+      APP_ENV:
+        description: App Environment
+        required: false
       SLACK_WEBHOOK_URL:
         description: Slack Webhook URL
+        required: false
+      APPSTORE_CERT_BASE64:
+        description: AppStore Certificate Base64
+        required: false
+      APPSTORE_CERT_PASSWORD:
+        description: AppStore Certificate Password
+        required: false
+      MOBILEPROVISION_BASE64:
+        description: Mobile Provision Base64
+        required: false
+      KEYCHAIN_PASSWORD:
+        description: Keychain Password
+        required: false
+      EXPORT_OPTIONS_PLIST_BASE64:
+        description: Export Options Plist
         required: false
 
 jobs:
@@ -49,22 +97,54 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # - name: Setup Flutter
-      #   uses: subosito/flutter-action@v1
-      #   with:
-      #     channel: 'stable'
-      #     flutter-version: '3.13.2'
-
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
+      - name: Prepare ENV File
+        run: echo "${{ secrets.APP_ENV }}" | base64 --decode > .env
+
+      - name: Verify Certificate Installation
+        run: security find-identity -p codesigning -v
+
+      - name: Prepare Export Options Plist
+        run: echo "${{ secrets.EXPORT_OPTIONS_PLIST_BASE64 }}" | base64 --decode > ios/export_options.plist
+
       - if: "${{ inputs.flavor == '' }}"
         name: Build Normal IPA
-        run: flutter build ipa --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+        run: flutter build ios --release --no-codesign
 
       - if: "${{ inputs.flavor != '' }}"
         name: Build Flavored IPA
-        run: flutter build ipa --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }}
+        run: flutter build ipa --obfuscate --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart --split-debug-info=${{ github.workspace }}/build/app/outputs/symbols
+
+      - name: Upload DSYMs to Firebase
+        run: |
+          ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ${{ github.workspace }}/ios/Runner${{ format('{0}{1}', inputs.flavor != '' && '/' || '', inputs.flavor ) }}/GoogleService-Info.plist -p ios ${{ github.workspace }}/build/ios/archive/Runner.xcarchive/dSYMs
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.ipa-artifact-name }}${{ format('{0}{1}', inputs.flavor != '' && '-' || '', inputs.flavor) }}
+          path: ./build/ios/ipa/${{ inputs.app-name }}.ipa
+
+      - name: Upload Archive Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.runner-archive-artifact-name}}
+          path: ./build/ios/archive/Runner.xcarchive
+
+      - name: Upload BOM Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bom
+          path: ./pubspec.lock
+
+      - name: The job has failed
+        if: ${{ failure() && inputs.flavor == '' }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'IPA Build for `${{ github.event.repository.name }}` :ios: failed :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

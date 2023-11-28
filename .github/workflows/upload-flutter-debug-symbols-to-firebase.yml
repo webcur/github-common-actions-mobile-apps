@@ -47,5 +47,5 @@ jobs:
         name: The job has failed
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_MESSAGE: 'Flutter debug symbols push for `${{ github.event.repository.name }}` :android: failed :x:.'
+          SLACK_MESSAGE: 'Flutter debug symbols upload for `${{ github.event.repository.name }}` :android: failed :x:.'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

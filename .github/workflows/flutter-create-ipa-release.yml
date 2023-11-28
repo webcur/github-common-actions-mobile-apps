@@ -1,18 +1,10 @@
-name: flutter-create-apk-release
+name: flutter-create-ipa-release
 
 on:
   workflow_dispatch:
     inputs:
-      apk-artifact-name:
-        description: APK Artifact Name.
-        required: true
-        type: string
-      flutter-debug-symbols-artifact-name:
-        description: APK Artifact Name.
-        required: true
-        type: string
-      merged-native-debug-symbols-artifact-name:
-        description: APK Artifact Name.
+      ipa-artifact-name:
+        description: IPA Artifact Name.
         required: true
         type: string
       version-code:
@@ -23,34 +15,50 @@ on:
         description: Flavor. e.g. dev, prod
         required: false
         type: string
+      environment:
+        description: Environment. e.g. staging, production
+        required: false
+        type: environment
       release-tag-suffix:
         description: Release tag prefix. e.g. -beta.1, -rc.1, ios, android
         required: false
+        type: string
+      runner-archive-artifact-name:
+        description: Runner archive artifact name
+        type: string
+      runs-on:
+        description: Runs on. e.g. ubuntu-latest, macos-latest
+        required: false
+        default: ubuntu-latest
         type: string
   workflow_call:
     inputs:
-      apk-artifact-name:
-        description: APK Artifact Name.
-        required: true
-        type: string
-      flutter-debug-symbols-artifact-name:
-        description: APK Artifact Name.
-        required: true
-        type: string
-      merged-native-debug-symbols-artifact-name:
-        description: APK Artifact Name.
+      ipa-artifact-name:
+        description: IPA Artifact Name.
         required: true
         type: string
       version-code:
         description: Version code. e.g. 1.0.3+7
-        required: false
+        required: true
         type: string
       flavor:
         description: Flavor. e.g. dev, prod
         required: false
         type: string
+      environment:
+        description: Environment. e.g. staging, production
+        required: false
+        type: string
       release-tag-suffix:
         description: Release tag prefix. e.g. -beta.1, -rc.1, ios, android
+        required: false
+        type: string
+      runner-archive-artifact-name:
+        description: Runner archive artifact name
+        type: string
+      runs-on:
+        description: Runs on. e.g. ubuntu-latest, macos-latest
+        default: ubuntu-latest
         required: false
         type: string
     secrets:
@@ -63,11 +71,8 @@ on:
 
 jobs:
   create-release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on}}
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -79,45 +84,28 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset - APK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.apk-artifact-name }}/app-release.apk
-          asset_name: ${{ inputs.apk-artifact-name }}${{ format('-{0}{1}', inputs.flavor, inputs.flavor != '' && '-' || '' ) }}v${{ inputs.version-code }}.apk
-          asset_content_type: application/vnd.android.package-archive
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
 
-      - name: Upload Release Asset - Merged Native Debug Symbols
+      - name: Upload Release Asset - IPA
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.merged-native-debug-symbols-artifact-name }}/symbols.zip
-          asset_name: ${{ inputs.merged-native-debug-symbols-artifact-name }}.zip
-          asset_content_type: application/zip
+          asset_path: ${{ inputs.ipa-artifact-name }}-${{ inputs.flavor }}/${{ inputs.ipa-artifact-name }}-${{ inputs.flavor }}.ipa
+          asset_name: ${{ inputs.ipa-artifact-name }}${{ format('-{0}{1}', inputs.flavor, inputs.flavor != '' && '-' || '' ) }}v${{ inputs.version-code }}.ipa
+          asset_content_type: application/octet-stream
 
-      - name: Upload Release Asset - Flutter Debug Symbols
+      - name: Upload Release Asset - Runner Archive
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.flutter-debug-symbols-artifact-name }}/symbols.zip
-          asset_name: ${{ inputs.flutter-debug-symbols-artifact-name }}.zip
-          asset_content_type: application/zip
-
-      - name: Upload Release Asset - Mapping.txt
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: mapping/mapping.txt
-          asset_name: mapping.txt
-          asset_content_type: text/plain
+          asset_path: ${{ inputs.runner-archive-artifact-name}}/Runner.xcarchive
+          asset_name: Runner.xcarchive
+          asset_content_type: application/octet-stream
 
       - name: Upload Release Asset - BOM
         uses: actions/upload-release-asset@v1
@@ -133,5 +121,5 @@ jobs:
         if: ${{ failure() && inputs.flavor == '' }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_MESSAGE: 'Unable to complete APK `release-create` workflow for `${{ github.event.repository.name }}` :android: :x:.'
+          SLACK_MESSAGE: 'Unable to complete IPA `release-create` workflow for `${{ github.event.repository.name }}` :ios: :x:.'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

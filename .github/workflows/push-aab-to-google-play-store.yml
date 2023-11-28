@@ -192,5 +192,5 @@ jobs:
         name: The job has failed
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
-          SLACK_MESSAGE: 'Push AAB ro Google Play for `${{ github.event.repository.name }}` failed :x:.'
+          SLACK_MESSAGE: 'Push AAB :android: to Google Play for `${{ github.event.repository.name }}` failed :x:.'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

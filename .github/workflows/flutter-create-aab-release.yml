@@ -23,6 +23,10 @@ on:
         description: Flavor. e.g. dev, prod
         required: false
         type: string
+      release-tag-suffix:
+        description: Release tag prefix. e.g. -beta.1, -rc.1, ios, android
+        required: false
+        type: string
   workflow_call:
     inputs:
       aab-artifact-name:
@@ -43,6 +47,10 @@ on:
         type: string
       flavor:
         description: Flavor. e.g. dev, prod
+        required: false
+        type: string
+      release-tag-suffix:
+        description: Release tag prefix. e.g. -beta.1, -rc.1, ios, android
         required: false
         type: string
     secrets:
@@ -66,7 +74,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
-          tag_name: v${{ inputs.version-code }}
+          tag_name: v${{ inputs.version-code }}${{ format('{0}{1}', inputs.release-tag-suffix != '' && '-' || '', inputs.release-tag-suffix ) }}
           release_name: 'Release v${{ inputs.version-code }}'
           draft: false
           prerelease: false
@@ -120,3 +128,10 @@ jobs:
           asset_path: bom/pubspec.lock
           asset_name: pubspec.lock
           asset_content_type: text/plain
+
+      - name: The job has failed
+        if: ${{ failure() && inputs.flavor == '' }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: 'Unable to complete AAB `release-create` workflow for `${{ github.event.repository.name }}` :android: :x:.'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
