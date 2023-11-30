@@ -127,16 +127,16 @@ jobs:
 
       - name: Prepare App Store Connect Credential
         run: |
-          echo ${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }} | base64 --decode > ios/fastlane/app-store-connect.json
+          echo ${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }} | base64 --decode > ios/fastlane/api.json
 
       - name: Upload IPA to TestFlight
         run: |
           cd ios && fastlane ${{ inputs.fastlane-lane }} ${{ inputs.fastlane-args }}
-      
+
       - name: Clean Up App Store Connect Credentials
         if: ${{ always() }}
-        run: rm -f ios/fastlane/app-store-connect.json
-      
+        run: rm -f ios/fastlane/api.json
+
       - if: ${{ failure() }}
         name: The job has failed
         uses: rtCamp/action-slack-notify@v2.2.0
