@@ -32,7 +32,6 @@ on:
       runner-archive-artifact-name:
         description: Runner Archive Artifact Name
         type: string
-        default: Runner
         required: true
   workflow_call:
     inputs:
@@ -65,7 +64,6 @@ on:
       runner-archive-artifact-name:
         description: Runner Archive Artifact Name
         type: string
-        default: Runner
         required: true
     secrets:
       APP_ENV:
@@ -85,6 +83,12 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Delete Podspec Lock
+        run: rm -rf ios/Podfile.lock
+
+      - name: Pods Install
+        run: cd ios && pod install --repo-update
+
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
@@ -96,7 +100,7 @@ jobs:
 
       - if: "${{ inputs.flavor == '' }}"
         name: Build Normal IPA
-        run: flutter build ios --release --obfuscate --split-debug-info=${{ github.workspace }}/build/app/outputs/symbols
+        run: flutter build ipa --release --obfuscate --split-debug-info=${{ github.workspace }}/build/app/outputs/symbols
 
       - if: "${{ inputs.flavor != '' }}"
         name: Build Flavored IPA
@@ -112,7 +116,8 @@ jobs:
           name: ${{ inputs.ipa-artifact-name }}${{ format('{0}{1}', inputs.flavor != '' && '-' || '', inputs.flavor) }}
           path: ./build/ios/ipa/${{ inputs.app-name }}.ipa
 
-      - name: Upload Archive Artifact
+      - if: ${{ inputs.runner-archive-artifact-name != '' }}
+        name: Upload Archive Artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.runner-archive-artifact-name}}
@@ -126,7 +131,7 @@ jobs:
 
       - name: The job has failed
         if: ${{ failure() && inputs.flavor == '' }}
-        uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_MESSAGE: 'IPA Build for `${{ github.event.repository.name }}` :ios: failed :x:.'
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text": "$SLACK_MESSAGE"}'  ${{ secrets.SLACK_WEBHOOK_URL }}
