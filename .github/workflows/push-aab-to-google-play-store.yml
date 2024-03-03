@@ -31,6 +31,15 @@ on:
         description: Merged Native Libs Symbols File Name
         required: false
         type: string
+      environment:
+        description: Environment.
+        required: false
+        type: environment
+      runner:
+        description: Runner.
+        required: false
+        default: ubuntu-latest
+        type: string
   workflow_call:
     inputs:
       aab-file-name:
@@ -61,6 +70,15 @@ on:
         description: Merged Native Libs Symbols File Name
         required: false
         type: string
+      environment:
+        description: Environment.
+        required: false
+        type: string
+      runner:
+        description: Runner.
+        required: false
+        default: ubuntu-latest
+        type: string
     secrets:
       GITHUB_ENV_TOKEN:
         description: GITHUB_ENV_TOKEN
@@ -73,8 +91,9 @@ on:
         required: true
 
 jobs:
-  download-latest-release-and-push-to-google-play:
-    runs-on: ubuntu-latest
+  download-latest-release-or-artifact-and-push-to-google-play:
+    environment: ${{ inputs.environment }}
+    runs-on: ${{ inputs.runner }}
     steps:
       - name: Validate AAB Inputs
         run: |
@@ -150,17 +169,6 @@ jobs:
         run: |
           mv ./release/${{ inputs.merged-native-libs-symbols-file-name }}.zip ./symbols.zip
 
-      - if: ${{ inputs.aab-artifact-name != '' && inputs.aab-file-name == '' }}
-        name: Normalize Artifact File Names
-        run: |
-          mv ./${{ inputs.aab-artifact-name }}/app-release.aab ./app-release.aab
-          mv ./${{ inputs.aab-artifact-name }}/mapping.txt mapping.txt
-
-      - if: ${{ inputs.merged-native-libs-symbols-artifact-name != '' && inputs.merged-native-libs-symbols-file-name == '' }}
-        name: Normalize Artifact File Names
-        run: |
-          mv ./${{ inputs.merged-native-libs-symbols-artifact-name }}/symbols.zip ./symbols.zip
-
       - name: Extract Flutter Debug Symbols
         run: unzip -q ./symbols.zip -d symbols
 
@@ -183,7 +191,6 @@ jobs:
           track: ${{ inputs.track }}
           status: ${{ inputs.status }}
           inAppUpdatePriority: 2
-          userFraction: 0.9
           whatsNewDirectory: whatsnew
           mappingFile: mapping.txt
           debugSymbols: symbols

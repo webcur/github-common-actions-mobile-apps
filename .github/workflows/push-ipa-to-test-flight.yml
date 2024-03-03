@@ -84,6 +84,7 @@ jobs:
   push-ipa-to-test-flight:
     name: Push IPA to TestFlight
     runs-on: ${{ inputs.runner }}
+    environment: ${{ inputs.environment }}
     steps:
       - name: Validate AAB Inputs
         run: |
@@ -103,7 +104,7 @@ jobs:
       - if: ${{ inputs.ipa-artifact-name != '' && inputs.ipa-file-name == '' }}
         name: Move IPA Artifact
         run: |
-          mv ${{ inputs.ipa-artifact-name }}/${{ inputs.app-name }}.ipa ${{ inputs.final-ipa-file-name }}.ipa
+          mv ${{ inputs.app-name }}.ipa ${{ inputs.final-ipa-file-name }}.ipa
 
       - if: ${{ inputs.ipa-file-name != '' && inputs.ipa-artifact-name == '' }}
         name: Get Latest Release
@@ -123,11 +124,11 @@ jobs:
 
       - if: ${{ inputs.ipa-file-name != '' && inputs.ipa-artifact-name == '' }}
         name: Move IPA Release
-        run: mv release/${{ inputs.ipa-file-name }}.ipa ${{ inputs.final-ipa-file-name }}.ipa
+        run: mv ./release/${{ inputs.ipa-file-name }}.ipa ${{ inputs.final-ipa-file-name }}.ipa
 
       - name: Prepare App Store Connect Credential
         run: |
-          echo ${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }} | base64 --decode > ios/fastlane/api.json
+          echo "${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }}" | base64 --decode > ios/fastlane/api.json
 
       - name: Upload IPA to TestFlight
         run: |

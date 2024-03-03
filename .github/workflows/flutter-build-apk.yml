@@ -94,16 +94,12 @@ jobs:
         uses: subosito/flutter-action@v1
         with:
           channel: 'stable'
-          flutter-version: '3.13.2'
 
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
-
-      - name: Install RPS
-        run: dart pub global activate rps
 
       - name: Decode Signing Keys
         run: echo "${{ secrets.KEYSTORE_JKS }}" | base64 --decode > android/app/keystore.jks
@@ -130,11 +126,11 @@ jobs:
 
       - if: "${{ inputs.flavor == '' }}"
         name: Build Normal APK
-        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
+        run: flutter build apk --target-platform android-arm,android-arm64,android-x64 --release ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
 
       - if: "${{ inputs.flavor != '' }}"
         name: Build Flavored APK
-        run: flutter build appbundle --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
+        run: flutter build apk --target-platform android-arm,android-arm64,android-x64 --release --flavor ${{ inputs.flavor }} -t lib/main_${{ inputs.flavor }}.dart ${{ inputs.obfuscate && format('--obfuscate --split-debug-info=/home/runner/work/{0}/{0}/build/app/outputs/symbols', github.event.repository.name) || '' }} ${{ secrets.DART_DEFINE_FILE && '--dart-define-from-file dart-define.json' }}
 
       - name: Zip Merged Native Libs Symbols
         run: |

@@ -31,6 +31,10 @@ on:
         required: false
         default: ubuntu-latest
         type: string
+      app-name:
+        description: App name
+        required: true
+        type: string
   workflow_call:
     inputs:
       ipa-artifact-name:
@@ -61,6 +65,10 @@ on:
         default: ubuntu-latest
         required: false
         type: string
+      app-name:
+        description: App name
+        required: true
+        type: string
     secrets:
       SLACK_WEBHOOK_URL:
         description: Slack Webhook URL
@@ -80,14 +88,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           tag_name: v${{ inputs.version-code }}${{ format('{0}{1}', inputs.release-tag-suffix != '' && '-' || '', inputs.release-tag-suffix ) }}
-          release_name: 'Release v${{ inputs.version-code }}'
+          release_name: Release v${{ inputs.version-code }}${{ format('{0}{1}', inputs.release-tag-suffix != '' && '-' || '', inputs.release-tag-suffix ) }}
           draft: false
           prerelease: false
 
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
-      - name: Upload Release Asset - IPA
+      - if: ${{ inputs.flavor != '' }}
+        name: Upload Release Asset - Flavored IPA
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
@@ -97,14 +106,29 @@ jobs:
           asset_name: ${{ inputs.ipa-artifact-name }}${{ format('-{0}{1}', inputs.flavor, inputs.flavor != '' && '-' || '' ) }}v${{ inputs.version-code }}.ipa
           asset_content_type: application/octet-stream
 
-      - name: Upload Release Asset - Runner Archive
+      - if: ${{ inputs.flavor == '' }}
+        name: Upload Release Asset - Normal IPA
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ inputs.runner-archive-artifact-name}}/Runner.xcarchive
-          asset_name: Runner.xcarchive
+          asset_path: ${{ inputs.ipa-artifact-name }}/${{ inputs.app-name }}.ipa
+          asset_name: ${{ inputs.ipa-artifact-name }}v${{ inputs.version-code }}.ipa
+          asset_content_type: application/octet-stream
+
+      - name: Zip XCArchive
+        run: zip -r Runner.xcarchive.zip Runner
+
+      - if: ${{ inputs.runner-archive-artifact-name != '' }}
+        name: Upload Release Asset - Runner Archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_ENV_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: Runner.xcarchive.zip
+          asset_name: Runner.xcarchive.zip
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset - BOM

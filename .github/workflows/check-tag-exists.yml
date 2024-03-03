@@ -1,0 +1,50 @@
+name: check-tag-exists
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      runner:
+        description: Runner name. e.g. macos-latest
+        default: ubuntu-latest
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        description: Version code. e.g. 1.0.3+7
+        required: false
+        type: string
+      runner:
+        description: Runner name. e.g. macos-latest
+        default: ubuntu-latest
+        required: false
+        type: string
+    secrets:
+      GITHUB_ENV_TOKEN:
+        required: true
+        description: GitHub Token
+
+jobs:
+  tag-exists:
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Check tag exists
+        uses: actions/github-script@v3
+        id: check-tag-exists
+        with:
+          github-token: ${{ secrets.GITHUB_ENV_TOKEN }}
+          script: |
+            const { data: tags } = await github.repos.listTags({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const tagExists = tags.some((tag) => tag.name === '${{ inputs.tag }}');
+            core.setOutput('tag-exists', tagExists);
+
+      - name: Fail if tag exists
+        if: ${{ steps.check-tag-exists.outputs.tag-exists == 'true' }}
+        run: exit 1
