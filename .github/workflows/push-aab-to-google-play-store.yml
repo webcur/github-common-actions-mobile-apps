@@ -106,9 +106,10 @@ jobs:
       - name: LS
         run: ls -la
 
-      - name: Normalize Artifact File Names (AAB Artifact)
+      - if: ${{ inputs.flavor != '' }}
+        name: Normalize Artifact File Names (AAB Artifact)
         run: |
-          mv ./app${{ inputs.flavor != '' && format('-{0}', inputs.flavor) || '' }}-release.aab ./app-release.aab
+          mv ./app-${{ inputs.flavor }}-release.aab ./app-release.aab
 
       - name: Extract Flutter Debug Symbols
         run: unzip -q ./symbols.zip -d symbols
