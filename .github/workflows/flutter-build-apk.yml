@@ -30,6 +30,10 @@ on:
         description: Flutter Build Symbols Artifact Name
         required: true
         type: string
+      gen-l10n:
+        description: Generate Localization Files
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       flavor:
@@ -58,6 +62,10 @@ on:
         description: Flutter Build Symbols Artifact Name
         required: true
         type: string
+      gen-l10n:
+        description: Generate Localization Files
+        type: boolean
+        default: true
     secrets:
       KEYSTORE_JKS:
         description: Keystore JKS
@@ -100,6 +108,10 @@ jobs:
 
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - if: ${{ inputs.gen-l10n }}
+        name: Generate localization files
+        run: flutter gen-l10n
 
       - name: Decode Signing Keys
         run: echo "${{ secrets.KEYSTORE_JKS }}" | base64 --decode > android/app/keystore.jks
