@@ -103,6 +103,14 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -H
+
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
