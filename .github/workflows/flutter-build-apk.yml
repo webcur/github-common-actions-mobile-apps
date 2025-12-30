@@ -103,6 +103,12 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Clean Flutter (Free up disk space)
+        run: flutter clean
+
+      - name: Clean Gradle cache
+        run: rm -rf ~/.gradle/caches/
+
       - name: Install Dependencies
         run: flutter pub get
 
