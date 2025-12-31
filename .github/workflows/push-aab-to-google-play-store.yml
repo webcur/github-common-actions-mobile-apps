@@ -36,6 +36,10 @@ on:
         required: false
         default: ubuntu-latest
         type: string
+      flavor:
+        description: App flavor
+        required: false
+        type: string
   workflow_call:
     inputs:
       aab-artifact-name:
@@ -66,6 +70,10 @@ on:
         description: Runner.
         required: false
         default: ubuntu-latest
+        type: string
+      flavor:
+        description: App flavor
+        required: false
         type: string
     secrets:
       GITHUB_ENV_TOKEN:
@@ -102,9 +110,10 @@ jobs:
       - name: LS
         run: ls -la
 
-      - name: Normalize Release File Names (AAB and Mapping Artifact)
+      - if: ${{ inputs.flavor != ''}}
+        name: Normalize Release File Names (AAB and Mapping Artifact)
         run: |
-          mv ./app-prod-release.aab ./app-release.aab
+          mv ./app-${{ inputs.flavor }}-release.aab ./app-release.aab
 
       - name: Extract Flutter Debug Symbols
         run: unzip -q ./symbols.zip -d symbols
