@@ -5,6 +5,7 @@
         "appdistribution",
         "APPSTORE",
         "codesign",
+        "deintegrate",
         "flutterfire",
         "gnubin",
         "hostedtoolcache",
