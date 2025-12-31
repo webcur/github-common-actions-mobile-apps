@@ -196,11 +196,20 @@ jobs:
         run: |
           echo "${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }}" | base64 --decode > ios/fastlane/api.json
 
-      - name: Install the Apple certificate, provisioning profile, and Build IPA
+
+      - if: ${{ inputs.flavor == '' }}
+        name: Install the Apple certificate, provisioning profile, and Build IPA (Normal)
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           BUNDLE_ID: ${{ inputs.bundle-id }}
-        run: cd ios && fastlane export_and_sign flavor:${{ inputs.flavor }} ipa_name:${{ inputs.app-name }}
+        run: cd ios && fastlane export_and_sign ipa_name:"${{ inputs.app-name }}"
+
+      - if: ${{ inputs.flavor != '' }}
+        name: Install the Apple certificate, provisioning profile, and Build IPA (Flavored)
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          BUNDLE_ID: ${{ inputs.bundle-id }}
+        run: cd ios && fastlane export_and_sign flavor:${{ inputs.flavor }} ipa_name:"${{ inputs.app-name }}"
 
       - name: Upload DSYMs to Firebase
         run: |
