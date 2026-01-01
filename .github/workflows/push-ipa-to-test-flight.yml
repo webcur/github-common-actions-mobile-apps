@@ -93,7 +93,7 @@ jobs:
         with:
           name: ${{ inputs.ipa-artifact-name }}
 
-      - name: LSI IPA File
+      - name: LS IPA File
         run: ls -la
 
       - name: Move IPA Artifact
