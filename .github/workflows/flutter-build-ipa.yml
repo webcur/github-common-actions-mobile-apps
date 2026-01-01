@@ -213,7 +213,7 @@ jobs:
 
       - name: Upload DSYMs to Firebase
         run: |
-          ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ${{ github.workspace }}/ios/Runner${{ format('{0}{1}', inputs.flavor != '' && '/' || '', inputs.flavor ) }}/GoogleService-Info.plist -p ios ${{ github.workspace }}/build/ios/ipa/${{ inputs.app-name }}.app.dSYM.zip
+          ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ${{ github.workspace }}/ios/Runner${{ format('{0}{1}', inputs.flavor != '' && '/' || '', inputs.flavor ) }}/GoogleService-Info.plist -p ios "${{ github.workspace }}/build/ios/ipa/${{ inputs.app-name }}.app.dSYM.zip"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4

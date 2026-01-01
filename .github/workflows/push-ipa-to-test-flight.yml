@@ -93,9 +93,12 @@ jobs:
         with:
           name: ${{ inputs.ipa-artifact-name }}
 
+      - name: LSI IPA File
+        run: ls -la
+
       - name: Move IPA Artifact
         run: |
-          mv ${{ inputs.app-name }}.ipa ${{ inputs.final-ipa-file-name }}.ipa
+          mv "${{ inputs.app-name }}.ipa" "${{ inputs.final-ipa-file-name }}.ipa"
 
       - name: Prepare App Store Connect Credential
         run: |

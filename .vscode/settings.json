@@ -6,6 +6,7 @@
         "APPSTORE",
         "codesign",
         "deintegrate",
+        "DSYMs",
         "flutterfire",
         "gnubin",
         "hostedtoolcache",
