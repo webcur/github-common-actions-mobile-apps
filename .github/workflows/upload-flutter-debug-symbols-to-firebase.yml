@@ -1,16 +1,10 @@
 name: upload-flutter-debug-symbols-to-firebase
 
 on:
-  workflow_dispatch:
-    inputs:
-      flutter-debug-symbols-artifact-name:
-        description: AAB Artifact Name.
-        required: true
-        type: string
   workflow_call:
     inputs:
       flutter-debug-symbols-artifact-name:
-        description: AAB Artifact Name.
+        description: Flutter Debug Symbols Artifact Name.
         required: true
         type: string
     secrets:

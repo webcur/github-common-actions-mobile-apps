@@ -1,41 +1,6 @@
 name: push-ipa-to-test-flight
 
 on:
-  workflow_dispatch:
-    inputs:
-      runner:
-        description: Runner. e.g. self-hosted
-        required: false
-        default: macos-latest
-        type: string
-      environment:
-        description: Environment. e.g. stage
-        required: false
-        type: environment
-      ipa-artifact-name:
-        description: IPA artifact name. e.g. ios.ipa
-        required: true
-        default: ios.ipa
-        type: string
-      fastlane-lane:
-        description: Fastlane lane
-        type: string
-      fastlane-args:
-        description: Fastlane args. e.g. flavor:stage
-        type: string
-      app-name:
-        description: App Name
-        type: string
-        default: App Name
-        required: true
-      final-ipa-file-name:
-        description: Final IPA file name.
-        type: string
-        required: true
-      bundle-id:
-        description: App Bundle ID
-        type: string
-        required: false
   workflow_call:
     inputs:
       runner:

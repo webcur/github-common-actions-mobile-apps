@@ -1,0 +1,61 @@
+name: upload-to-google-cloud-storage
+
+on:
+  workflow_call:
+    inputs:
+      aab-artifact-name:
+        description: AAB Artifact Name.
+        required: true
+        type: string
+      version-code:
+        description: Version Code.
+        required: true
+        type: string
+      bucket-name:
+        description: GCS Bucket Name.
+        required: true
+        type: string
+      environment:
+        description: Deployment Environment.
+        required: true
+        type: string
+      service-account-name:
+        description: GCP Service Account Name.
+        required: false
+        type: string
+        default: github-action-1024803243
+
+env:
+  PROJECT_ID: webcur-340820
+  PROJECT_NUMBER: '352942702249'
+  REGION: us-central1
+
+jobs:
+  upload-to-gcs:
+    name: Upload AAB to Google Cloud Storage
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Setup GCloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: '${{ inputs.service-account-name }}@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.aab-artifact-name }}
+
+      - name: LS AAB File
+        run: ls -la
+
+      - name: Upload AAB to GCS
+        run: |
+          gsutil cp ./${{ inputs.aab-artifact-name }} gs://${{ inputs.bucket-name }}/releases/${{ inputs.environment }}/app-${{ inputs.version-code }}.aab
