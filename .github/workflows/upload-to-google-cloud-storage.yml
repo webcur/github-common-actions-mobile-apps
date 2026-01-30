@@ -24,15 +24,18 @@ on:
         required: false
         type: string
         default: github-action-1024803243
+      project-id:
+        description: GCP Project ID.
+        required: false
+        type: string
+      project-number:
+        description: GCP Project Number.
+        required: false
+        type: string
     secrets:
       SLACK_WEBHOOK_URL:
         description: SLACK_WEBHOOK_URL
         required: true
-
-env:
-  PROJECT_ID: webcur-340820
-  PROJECT_NUMBER: '352942702249'
-  REGION: us-central1
 
 jobs:
   upload-to-gcs:
@@ -50,8 +53,8 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: '${{ inputs.service-account-name }}@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/${{ inputs.project-number }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: '${{ inputs.service-account-name }}@${{ inputs.project-id }}.iam.gserviceaccount.com'
 
       - uses: actions/download-artifact@v4
         with:

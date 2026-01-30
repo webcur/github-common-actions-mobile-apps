@@ -73,13 +73,11 @@ jobs:
           CONFIG='${{ inputs.config }}'
 
           GCP_PROJECT_ID=$(echo "$CONFIG" | jq -r '.gcp_project_id')
-          GCP_REGION=$(echo "$CONFIG" | jq -r '.gcp_region')
           GCP_PROJECT_NUMBER=$(echo "$CONFIG" | jq -r '.gcp_project_number')
           VERSION_CODE=$(echo "$CONFIG" | jq -r '.version_code')
 
           echo "GCP_PROJECT_ID=$GCP_PROJECT_ID" >> $GITHUB_ENV
           echo "GCP_PROJECT_NUMBER=$GCP_PROJECT_NUMBER" >> $GITHUB_ENV
-          echo "GCP_REGION=$GCP_REGION" >> $GITHUB_ENV
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
 
       - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
