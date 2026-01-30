@@ -24,6 +24,10 @@ on:
         required: false
         type: string
         default: github-action-1024803243
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: SLACK_WEBHOOK_URL
+        required: true
 
 env:
   PROJECT_ID: webcur-340820
@@ -53,9 +57,33 @@ jobs:
         with:
           name: ${{ inputs.aab-artifact-name }}
 
+      - name: Download Mapping Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mapping
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.merged-native-libs-symbols-artifact-name }}
+
       - name: LS AAB File
         run: ls -la
 
       - name: Upload AAB to GCS
         run: |
           gsutil cp ./${{ inputs.aab-artifact-name }} gs://${{ inputs.bucket-name }}/releases/${{ inputs.environment }}/app-${{ inputs.version-code }}.aab
+
+      - name: Upload Mapping to GCS
+        run: |
+          gsutil cp ./mapping.txt gs://${{ inputs.bucket-name }}/releases/${{ inputs.environment }}/mapping-${{ inputs.version-code }}.txt
+
+      - name: Upload Merged Native Libs Symbols to GCS
+        run: |
+          gsutil cp -r ./symbols.zip gs://${{ inputs.bucket-name }}/releases/${{ inputs.environment }}/symbols-${{ inputs.version-code }}.zip
+
+      - if: ${{ failure() }}
+        name: The job has failed
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_MESSAGE: "Push AAB :android: assets to Google Cloud Storage for `${{ github.event.repository.name }}` failed :x:."
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}

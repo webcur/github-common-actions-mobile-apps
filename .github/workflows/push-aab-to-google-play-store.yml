@@ -1,45 +1,6 @@
 name: push-aab-to-google-play-store
 
 on:
-  workflow_dispatch:
-    inputs:
-      aab-artifact-name:
-        description: AAB Artifact Name.
-        required: false
-        type: string
-      app-id:
-        description: App ID.
-        required: true
-        type: string
-      track:
-        description: Track.
-        required: true
-        type: string
-      status:
-        description: Status.
-        required: false
-        type: string
-      merged-native-libs-symbols-artifact-name:
-        description: Merged Native Libs Symbols Artifact Name
-        required: false
-        type: string
-      merged-native-libs-symbols-file-name:
-        description: Merged Native Libs Symbols File Name
-        required: false
-        type: string
-      environment:
-        description: Environment.
-        required: false
-        type: environment
-      runner:
-        description: Runner.
-        required: false
-        default: ubuntu-latest
-        type: string
-      flavor:
-        description: App flavor
-        required: false
-        type: string
   workflow_call:
     inputs:
       aab-artifact-name:
@@ -71,8 +32,16 @@ on:
         required: false
         default: ubuntu-latest
         type: string
-      flavor:
-        description: App flavor
+      config:
+        description: JSON Config Content.
+        required: false
+        type: string
+      gcs-bucket-name:
+        description: GCS Bucket Name
+        required: false
+        type: string
+      service-account-name:
+        description: Service Account Name
         required: false
         type: string
     secrets:
@@ -89,28 +58,78 @@ on:
 jobs:
   download-latest-release-or-artifact-and-push-to-google-play:
     environment: ${{ inputs.environment }}
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ fromJson(inputs.config).runner || 'ubuntu-latest' }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v1
 
-      - name: Download AAB Artifact
+      - if: ${{ inputs.config != '' }}
+        name: Parse config
+        run: |
+          echo '${{ inputs.config }}' | jq .
+
+          CONFIG='${{ inputs.config }}'
+
+          GCP_PROJECT_ID=$(echo "$CONFIG" | jq -r '.gcp_project_id')
+          GCP_REGION=$(echo "$CONFIG" | jq -r '.gcp_region')
+          GCP_PROJECT_NUMBER=$(echo "$CONFIG" | jq -r '.gcp_project_number')
+          VERSION_CODE=$(echo "$CONFIG" | jq -r '.version_code')
+
+          echo "GCP_PROJECT_ID=$GCP_PROJECT_ID" >> $GITHUB_ENV
+          echo "GCP_PROJECT_NUMBER=$GCP_PROJECT_NUMBER" >> $GITHUB_ENV
+          echo "GCP_REGION=$GCP_REGION" >> $GITHUB_ENV
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+
+      - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
+        name: Download AAB Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.aab-artifact-name }}
 
-      - name: Download Mapping Artifact
+      - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
+        name: Download Mapping Artifact
         uses: actions/download-artifact@v4
         with:
           name: mapping
 
-      - uses: actions/download-artifact@v4
+      - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
+        uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.merged-native-libs-symbols-artifact-name }}
 
       - name: LS
         run: ls -la
 
-      - if: ${{ inputs.flavor != ''}}
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Setup GCloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: '${{ inputs.service-account-name }}@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com'
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Download AAB from GCS
+        run: |
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/app-${{ env.VERSION_CODE }}.aab ./app-release.aab
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Download Mapping from GCS
+        run: |
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/mapping-${{ env.VERSION_CODE }}.txt ./mapping.txt
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Download Merged Native Libs Symbols from GCS
+        run: |
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
+      
+      - if: ${{ inputs.gcs-bucket-name == '' && inputs.service-account-name == '' && inputs.flavor != ''}}
         name: Normalize Release File Names (AAB and Mapping Artifact)
         run: |
           mv ./app-${{ inputs.flavor }}-release.aab ./app-release.aab
