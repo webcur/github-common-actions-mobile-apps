@@ -75,10 +75,12 @@ jobs:
           GCP_PROJECT_ID=$(echo "$CONFIG" | jq -r '.gcp_project_id')
           GCP_PROJECT_NUMBER=$(echo "$CONFIG" | jq -r '.gcp_project_number')
           VERSION_CODE=$(echo "$CONFIG" | jq -r '.version_code')
+          FLAVOR=$(echo "$CONFIG" | jq -r '.flavor')
 
           echo "GCP_PROJECT_ID=$GCP_PROJECT_ID" >> $GITHUB_ENV
           echo "GCP_PROJECT_NUMBER=$GCP_PROJECT_NUMBER" >> $GITHUB_ENV
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "FLAVOR=$FLAVOR" >> $GITHUB_ENV
 
       - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
         name: Download AAB Artifact
@@ -127,10 +129,10 @@ jobs:
         run: |
           gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
       
-      - if: ${{ inputs.gcs-bucket-name == '' && inputs.service-account-name == '' && inputs.flavor != ''}}
+      - if: ${{ inputs.gcs-bucket-name == '' && inputs.service-account-name == '' && env.FLAVOR != ''}}
         name: Normalize Release File Names (AAB and Mapping Artifact)
         run: |
-          mv ./app-${{ inputs.flavor }}-release.aab ./app-release.aab
+          mv ./app-${{ env.FLAVOR }}-release.aab ./app-release.aab
 
       - name: Extract Flutter Debug Symbols
         run: unzip -q ./symbols.zip -d symbols
