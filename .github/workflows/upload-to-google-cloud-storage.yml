@@ -46,15 +46,15 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Setup GCloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ inputs.project-number }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
           service_account: '${{ inputs.service-account-name }}@${{ inputs.project-id }}.iam.gserviceaccount.com'
+
+      - name: Setup GCloud SDK
+        uses: google-github-actions/setup-gcloud@v1
 
       - uses: actions/download-artifact@v4
         with:

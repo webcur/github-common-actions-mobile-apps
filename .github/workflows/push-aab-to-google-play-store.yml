@@ -101,16 +101,16 @@ jobs:
         run: ls -la
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
-        name: Setup GCloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-
-      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
           service_account: '${{ inputs.service-account-name }}@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com'
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Setup GCloud SDK
+        uses: google-github-actions/setup-gcloud@v1
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download AAB from GCS
