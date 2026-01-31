@@ -76,11 +76,13 @@ jobs:
           GCP_PROJECT_NUMBER=$(echo "$CONFIG" | jq -r '.gcp_project_number')
           VERSION_CODE=$(echo "$CONFIG" | jq -r '.version_code')
           FLAVOR=$(echo "$CONFIG" | jq -r '.flavor')
+          PROMOTION_SUBJECT_ENVIRONMENT=$(echo "$CONFIG" | jq -r '.promotion_subject_environment')
 
           echo "GCP_PROJECT_ID=$GCP_PROJECT_ID" >> $GITHUB_ENV
           echo "GCP_PROJECT_NUMBER=$GCP_PROJECT_NUMBER" >> $GITHUB_ENV
           echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
           echo "FLAVOR=$FLAVOR" >> $GITHUB_ENV
+          echo "PROMOTION_SUBJECT_ENVIRONMENT=$PROMOTION_SUBJECT_ENVIRONMENT" >> $GITHUB_ENV
 
       - if: ${{ inputs.gcs-bucket-name == '' || inputs.service-account-name == '' }}
         name: Download AAB Artifact
@@ -117,17 +119,17 @@ jobs:
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download AAB from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/app-${{ env.VERSION_CODE }}.aab ./app-release.aab
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/app-${{ env.VERSION_CODE }}.aab ./app-release.aab
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download Mapping from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/mapping-${{ env.VERSION_CODE }}.txt ./mapping.txt
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/mapping-${{ env.VERSION_CODE }}.txt ./mapping.txt
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download Merged Native Libs Symbols from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ inputs.environment }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
       
       - if: ${{ inputs.gcs-bucket-name == '' && inputs.service-account-name == '' && env.FLAVOR != ''}}
         name: Normalize Release File Names (AAB and Mapping Artifact)
