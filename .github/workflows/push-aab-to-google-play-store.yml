@@ -117,19 +117,24 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
+        name: Resolve environment folder in GCS to pull assets from
+        run: |
+          echo "PULL_ENVIRONMENT=${{ env.PROMOTION_SUBJECT_ENVIRONMENT != '' || inputs.environment  }}" >> $GITHUB_ENV
+
+      - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download AAB from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/app-${{ env.VERSION_CODE }}.aab ./app-release.aab
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PULL_ENVIRONMENT }}/app-${{ env.VERSION_CODE }}.aab ./app-release.aab
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download Mapping from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/mapping-${{ env.VERSION_CODE }}.txt ./mapping.txt
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PULL_ENVIRONMENT }}/mapping-${{ env.VERSION_CODE }}.txt ./mapping.txt
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download Merged Native Libs Symbols from GCS
         run: |
-          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PROMOTION_SUBJECT_ENVIRONMENT }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
+          gsutil cp gs://${{ inputs.gcs-bucket-name }}/releases/${{ env.PULL_ENVIRONMENT }}/symbols-${{ env.VERSION_CODE }}.zip ./symbols.zip
       
       - if: ${{ inputs.gcs-bucket-name == '' && inputs.service-account-name == '' && env.FLAVOR != ''}}
         name: Normalize Release File Names (AAB and Mapping Artifact)
