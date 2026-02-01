@@ -80,6 +80,10 @@ on:
         description: Generate Localization Files
         type: boolean
         default: true
+      config:
+        description: JSON string for additional configuration.
+        required: false
+        type: string
     secrets:
       KEYSTORE_JKS:
         description: Keystore JKS
