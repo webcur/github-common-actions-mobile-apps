@@ -166,6 +166,7 @@ jobs:
           target_file: ${{ env.L10N_TARGET_FILES }}
           target_lang_code: ${{ env.L10N_LANGUAGE_CODES }}
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          parallel: true
 
       - if: ${{ inputs.gen-l10n }}
         name: Generate localization files

@@ -119,7 +119,7 @@ jobs:
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Resolve environment folder in GCS to pull assets from
         run: |
-          echo "PULL_ENVIRONMENT=${{ env.PROMOTION_SUBJECT_ENVIRONMENT != '' || inputs.environment  }}" >> $GITHUB_ENV
+          echo "PULL_ENVIRONMENT=${{ env.PROMOTION_SUBJECT_ENVIRONMENT != '' && env.PROMOTION_SUBJECT_ENVIRONMENT || inputs.environment  }}" >> $GITHUB_ENV
 
       - if: ${{ inputs.gcs-bucket-name != '' && inputs.service-account-name != '' }}
         name: Download AAB from GCS
