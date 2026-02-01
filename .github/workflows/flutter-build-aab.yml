@@ -159,7 +159,7 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
       - if: ${{ env.L10N_SOURCE_FILE != '' && env.L10N_TARGET_FILES != '' && env.L10N_LANGUAGE_CODES != '' && inputs.gen-l10n }}
-        name: Generate localization files
+        name: Generate ARB files
         uses: francis94c/flutter-localization-action@v1
         with:
           source_file: ${{ env.L10N_SOURCE_FILE }}
