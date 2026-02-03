@@ -27,11 +27,6 @@ on:
         description: Environment.
         required: false
         type: string
-      runner:
-        description: Runner.
-        required: false
-        default: ubuntu-latest
-        type: string
       config:
         description: JSON Config Content.
         required: false
