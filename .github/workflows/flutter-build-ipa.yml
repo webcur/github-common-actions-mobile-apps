@@ -107,6 +107,9 @@ on:
       GOOGLE_SERVICES_INFO_FILE:
         description: Google Services Info File
         required: false
+      GEMINI_API_KEY:
+        description: Gemini API Key
+        required: false
 
 jobs:
   build-ios:
