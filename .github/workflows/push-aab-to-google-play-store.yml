@@ -167,6 +167,7 @@ jobs:
 
       - name: Upload to Google Play (Not Set Changes Not Sent For Review)
         uses: r0adkll/upload-google-play@v1
+        id: upload-to-google-play-set-changes-sent-for-review
         continue-on-error: true
         if: ${{ steps.upload-to-google-play-set-changes-not-sent-for-review.outcome == 'failure' }}
         with:
@@ -179,6 +180,15 @@ jobs:
           whatsNewDirectory: whatsnew
           mappingFile: mapping.txt
           debugSymbols: symbols
+
+      - name: Verify if upload was successful
+        run: |
+          if [[ "${{ steps.upload-to-google-play-set-changes-not-sent-for-review.outcome }}" == "failure" && "${{ steps.upload-to-google-play-set-changes-sent-for-review.outcome }}" == "failure" ]]; then
+            echo "Both attempts to upload to Google Play have failed."
+            exit 1
+          else
+            echo "Upload to Google Play was successful."
+          fi
 
       - if: ${{ failure() }}
         name: The job has failed
