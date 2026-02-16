@@ -53,7 +53,7 @@ on:
 jobs:
   download-latest-release-or-artifact-and-push-to-google-play:
     environment: ${{ inputs.environment }}
-    runs-on: ${{ fromJson(inputs.config).runner || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.config != '' && fromJson(inputs.config).runner || 'ubuntu-latest' }}
     permissions:
       id-token: write
       contents: read
