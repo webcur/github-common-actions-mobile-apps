@@ -133,10 +133,10 @@ jobs:
           echo "L10N_TARGET_FILES=$L10N_TARGET_FILES" >> $GITHUB_ENV
           echo "L10N_LANGUAGE_CODES=$L10N_LANGUAGE_CODES" >> $GITHUB_ENV
 
-      - name: Setup Xcode 16
+      - name: Setup Xcode 17
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.2.0"
+          xcode-version: "17.2.0"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v1
