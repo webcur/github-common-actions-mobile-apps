@@ -29,11 +29,10 @@ on:
         type: string
         default: IPA Artifact Name
         required: true
-      runner:
-        description: Runner
-        type: string
-        default: macos-latest
+      config:
+        description: JSON Config Content.
         required: false
+        type: string
       bundle-id:
         description: App Bundle ID
         type: string
@@ -75,11 +74,10 @@ on:
         type: string
         default: IPA Artifact Name
         required: true
-      runner:
-        description: Runner
-        type: string
-        default: macos-latest
+      config:
+        description: JSON Config Content.
         required: false
+        type: string
       bundle-id:
         description: App Bundle ID
         type: string
@@ -109,18 +107,36 @@ on:
       GOOGLE_SERVICES_INFO_FILE:
         description: Google Services Info File
         required: false
+      GEMINI_API_KEY:
+        description: Gemini API Key
+        required: false
 
 jobs:
   build-ios:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ${{ fromJson(inputs.config).runner || 'macos-latest' }}
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Xcode 16
+      - if: ${{ inputs.config != '' }}
+        name: Parse config
+        run: |
+          echo '${{ inputs.config }}' | jq .
+
+          CONFIG='${{ inputs.config }}'
+
+          L10N_SOURCE_FILE=$(echo "$CONFIG" | jq -r '.l10n_source_file')
+          L10N_TARGET_FILES=$(echo "$CONFIG" | jq -r '.l10n_target_files')
+          L10N_LANGUAGE_CODES=$(echo "$CONFIG" | jq -r '.l10n_language_codes')
+
+          echo "L10N_SOURCE_FILE=$L10N_SOURCE_FILE" >> $GITHUB_ENV
+          echo "L10N_TARGET_FILES=$L10N_TARGET_FILES" >> $GITHUB_ENV
+          echo "L10N_LANGUAGE_CODES=$L10N_LANGUAGE_CODES" >> $GITHUB_ENV
+
+      - name: Setup Latest Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2.0'
+          xcode-version: latest-stable
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v1
@@ -154,8 +170,24 @@ jobs:
       - name: Pod Install
         run: cd ios && pod deintegrate && pod install
 
+      - name: Delete Podspec Lock
+        run: rm -rf ios/Podfile.lock
+
+      - name: Pod Install
+        run: cd ios && pod deintegrate && pod install
+
       - name: Run Code Generators
         run: dart run build_runner build --delete-conflicting-outputs
+
+      - if: ${{ env.L10N_SOURCE_FILE != '' && env.L10N_TARGET_FILES != '' && env.L10N_LANGUAGE_CODES != '' && inputs.gen-l10n }}
+        name: Generate ARB files
+        uses: francis94c/flutter-localization-action@v1
+        with:
+          source_file: ${{ env.L10N_SOURCE_FILE }}
+          target_file: ${{ env.L10N_TARGET_FILES }}
+          target_lang_code: ${{ env.L10N_LANGUAGE_CODES }}
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          parallel: true
 
       - if: ${{ inputs.gen-l10n }}
         name: Generate localization files
@@ -196,15 +228,23 @@ jobs:
         run: |
           echo "${{ secrets.APPSTORE_CONNECT_JSON_BASE64 }}" | base64 --decode > ios/fastlane/api.json
 
-      - name: Install the Apple certificate, provisioning profile, and Build IPA
+      - if: ${{ inputs.flavor == '' }}
+        name: Install the Apple certificate, provisioning profile, and Build IPA (Normal)
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           BUNDLE_ID: ${{ inputs.bundle-id }}
-        run: cd ios && fastlane export_and_sign flavor:${{ inputs.flavor }}
+        run: cd ios && fastlane export_and_sign ipa_name:"${{ inputs.app-name }}"
+
+      - if: ${{ inputs.flavor != '' }}
+        name: Install the Apple certificate, provisioning profile, and Build IPA (Flavored)
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          BUNDLE_ID: ${{ inputs.bundle-id }}
+        run: cd ios && fastlane export_and_sign flavor:${{ inputs.flavor }} ipa_name:"${{ inputs.app-name }}"
 
       - name: Upload DSYMs to Firebase
         run: |
-          ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ${{ github.workspace }}/ios/Runner${{ format('{0}{1}', inputs.flavor != '' && '/' || '', inputs.flavor ) }}/GoogleService-Info.plist -p ios ${{ github.workspace }}/build/ios/ipa/${{ inputs.app-name }}.app.dSYM.zip
+          ios/Pods/FirebaseCrashlytics/upload-symbols -gsp ${{ github.workspace }}/ios/Runner${{ format('{0}{1}', inputs.flavor != '' && '/' || '', inputs.flavor ) }}/GoogleService-Info.plist -p ios "${{ github.workspace }}/build/ios/ipa/${{ inputs.app-name }}.app.dSYM.zip"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4

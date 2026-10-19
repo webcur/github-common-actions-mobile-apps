@@ -103,6 +103,14 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -H
+
       - name: Setup Java
         uses: actions/setup-java@v1
         with:
@@ -113,6 +121,12 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.29.0'
+
+      - name: Clean Flutter (Free up disk space)
+        run: flutter clean
+
+      - name: Clean Gradle cache
+        run: rm -rf ~/.gradle/caches/
 
       - name: Install Dependencies
         run: flutter pub upgrade && flutter pub get
