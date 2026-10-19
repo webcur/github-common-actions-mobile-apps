@@ -11,6 +11,9 @@
         "gnubin",
         "gsutil",
         "hostedtoolcache",
+        "hostedtoolcache",
+        "iphoneos",
+        "Jonin",
         "juliangruber",
         "libexec",
         "lobanov",
@@ -20,8 +23,10 @@
         "pozetroninc",
         "pubspec",
         "robinraju",
+        "testflight",
         "TOOLSDIRECTORY",
         "whatsnew",
-        "wzieba"
+        "wzieba",
+        "xcargs"
     ]
 }
