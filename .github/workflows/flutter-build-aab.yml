@@ -114,21 +114,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - if: ${{ inputs.config != '' }}
-        name: Parse config
-        run: |
-          echo '${{ inputs.config }}' | jq .
-
-          CONFIG='${{ inputs.config }}'
-
-          L10N_SOURCE_FILE=$(echo "$CONFIG" | jq -r '.l10n_source_file')
-          L10N_TARGET_FILES=$(echo "$CONFIG" | jq -r '.l10n_target_files')
-          L10N_LANGUAGE_CODES=$(echo "$CONFIG" | jq -r '.l10n_language_codes')
-
-          echo "L10N_SOURCE_FILE=$L10N_SOURCE_FILE" >> $GITHUB_ENV
-          echo "L10N_TARGET_FILES=$L10N_TARGET_FILES" >> $GITHUB_ENV
-          echo "L10N_LANGUAGE_CODES=$L10N_LANGUAGE_CODES" >> $GITHUB_ENV
-          
       - name: Free up disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -157,18 +142,21 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - if: ${{ inputs.gen-l10n }}
+        name: Download ARB Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: l10n-arb-files
+          path: lib/l10n
+
+      - name: LS lib/l10n
+        run: ls -la lib/l10n
+      - if: ${{ inputs.gen-l10n }}
+        name: Generate localization files
+        run: flutter gen-l10n
+
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
-
-      - if: ${{ env.L10N_SOURCE_FILE != '' && env.L10N_TARGET_FILES != '' && env.L10N_LANGUAGE_CODES != '' && inputs.gen-l10n }}
-        name: Generate ARB files
-        uses: francis94c/flutter-localization-action@v1
-        with:
-          source_file: ${{ env.L10N_SOURCE_FILE }}
-          target_file: ${{ env.L10N_TARGET_FILES }}
-          target_lang_code: ${{ env.L10N_LANGUAGE_CODES }}
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          parallel: true
 
       - if: ${{ inputs.gen-l10n }}
         name: Generate localization files
