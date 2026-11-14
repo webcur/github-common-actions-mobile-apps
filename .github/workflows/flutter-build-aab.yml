@@ -103,9 +103,6 @@ on:
       DART_DEFINE_FILE:
         description: Dart Define File
         required: false
-      GEMINI_API_KEY:
-        description: Gemini API Key
-        required: false
 
 jobs:
   build:
