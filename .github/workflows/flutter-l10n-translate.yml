@@ -49,7 +49,7 @@ jobs:
 
       - name: Generate ARB files
         if: steps.l10n-cache.outputs.cache-hit != 'true'
-        uses: francis94c/flutter-localization-action@v3
+        uses: francis94c/flutter-localization-action@v4
         with:
           source_file: ${{ inputs.l10n_source_file }}
           target_file: ${{ inputs.l10n_target_files }}
@@ -57,6 +57,7 @@ jobs:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           llm_model: gemini-2.5-flash
           parallel: ${{ inputs.parallel-processing }}
+          batch_size: 80
 
       - name: Upload ARB files
         uses: actions/upload-artifact@v4
