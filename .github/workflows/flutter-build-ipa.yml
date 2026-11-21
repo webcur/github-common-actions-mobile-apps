@@ -125,14 +125,8 @@ jobs:
 
           CONFIG='${{ inputs.config }}'
 
-          L10N_SOURCE_FILE=$(echo "$CONFIG" | jq -r '.l10n_source_file')
-          L10N_TARGET_FILES=$(echo "$CONFIG" | jq -r '.l10n_target_files')
-          L10N_LANGUAGE_CODES=$(echo "$CONFIG" | jq -r '.l10n_language_codes')
           COCOAPODS=$(echo "$CONFIG" | jq -r '.cocoapods')
 
-          echo "L10N_SOURCE_FILE=$L10N_SOURCE_FILE" >> $GITHUB_ENV
-          echo "L10N_TARGET_FILES=$L10N_TARGET_FILES" >> $GITHUB_ENV
-          echo "L10N_LANGUAGE_CODES=$L10N_LANGUAGE_CODES" >> $GITHUB_ENV
           echo "COCOAPODS=$COCOAPODS" >> $GITHUB_ENV
 
       - name: Setup Latest Xcode
@@ -175,13 +169,7 @@ jobs:
 
       - name: LS lib/l10n
         run: ls -la lib/l10n
-      - if: ${{ inputs.gen-l10n }}
-        name: Generate localization files
-        run: flutter gen-l10n
 
-      - if: ${{ env.COCOAPODS == 'true' }}
-        name: Delete Podspec Lock
-        run: rm -rf ios/Podfile.lock
 
       - if: ${{ env.COCOAPODS == 'true' }}
         name: Delete Podspec Lock
@@ -193,6 +181,10 @@ jobs:
 
       - name: Run Code Generators
         run: dart run build_runner build --delete-conflicting-outputs
+
+      - if: ${{ inputs.gen-l10n }}
+        name: Generate localization files
+        run: flutter gen-l10n
 
       - name: Prepare ENV File
         run: echo "${{ secrets.APP_ENV }}" | base64 --decode > .env
