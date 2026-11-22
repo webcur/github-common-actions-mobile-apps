@@ -170,7 +170,6 @@ jobs:
       - name: LS lib/l10n
         run: ls -la lib/l10n
 
-
       - if: ${{ env.COCOAPODS == 'true' }}
         name: Delete Podspec Lock
         run: rm -rf ios/Podfile.lock

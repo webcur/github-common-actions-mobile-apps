@@ -148,9 +148,6 @@ jobs:
 
       - name: LS lib/l10n
         run: ls -la lib/l10n
-      - if: ${{ inputs.gen-l10n }}
-        name: Generate localization files
-        run: flutter gen-l10n
 
       - name: Run Code Generators
         run: flutter pub run build_runner build --delete-conflicting-outputs
